@@ -1,12 +1,36 @@
-jobs:
-  Job1:
-    name: Windows VM with RDP and Pinggy
-    steps:
-      - type: script
-        name: Setup Windows + RDP + Pinggy
-        script: |
-          powershell.exe -Command "$p=ConvertTo-SecureString 'Xy!9#2025_RdpStrong*' -AsPlainText -Force; Set-LocalUser -Name 'Administrator' -Password $p; Enable-LocalUser -Name 'Administrator';"
-          powershell.exe -Command "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0; Enable-NetFirewallRule -DisplayGroup 'Remote Desktop';"
-          powershell.exe -Command "& 'C:\Program Files\Git\usr\bin\ssh.exe' -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io;"
-          powershell.exe -Command "for ($i=0; $i -lt 360; $i++) {Start-Sleep -Seconds 60; Write-Host 'Running ' $i ' minutes';}"
-    runs-on: Windows-Server-2022-Small
+version: 2025.1
+
+project:
+  name: Windows VM RDP with Pinggy
+  buildTypes:
+    - id: WindowsRDP
+      name: Windows VM RDP
+      vcs:
+        - root: main
+      steps:
+        - name: Setup Windows + RDP + Pinggy
+          type: script
+          scriptContent: |
+            powershell.exe -Command "
+            # Set Administrator password
+            $p=ConvertTo-SecureString 'Xy!9#2025_RdpStrong*' -AsPlainText -Force
+            Set-LocalUser -Name 'Administrator' -Password $p
+            Enable-LocalUser -Name 'Administrator'
+
+            # Enable RDP
+            Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
+            Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
+
+            # Run Pinggy tunnel
+            & 'C:\Program Files\Git\usr\bin\ssh.exe' -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
+
+            # Keep VM alive
+            for ($i=0; $i -lt 360; $i++) {
+              Start-Sleep -Seconds 60
+              Write-Host 'Running ' $i ' minutes'
+            }
+            "
+      requirements:
+        - name: teamcity.agent.jvm.os.name
+          condition: equals
+          value: Windows
