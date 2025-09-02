@@ -1,35 +1,32 @@
-project:
-  name: Windows VM RDP with Pinggy
-  buildTypes:
-    - id: WindowsRDP
-      name: Windows VM RDP
-      vcs:
-        - root: main
-      steps:
-        - name: Setup Windows + RDP + Pinggy
-          type: script
-          scriptContent: |
-            @echo off
-            REM Set Administrator password
-            net user Administrator Xy!9#2025_RdpStrong*
+jobs:
+  - id: WindowsRDP
+    name: Windows VM RDP
+    vcs:
+      - root: main
+    steps:
+      - name: Setup Windows + RDP + Pinggy
+        type: script
+        scriptContent: |
+          @echo off
+          REM Set Administrator password
+          net user Administrator Xy!9#2025_RdpStrong*
 
-            REM Enable Administrator if disabled
-            net user Administrator /active:yes
+          REM Enable Administrator if disabled
+          net user Administrator /active:yes
 
-            REM Enable RDP
-            reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
-            netsh advfirewall firewall set rule group="Remote Desktop" new enable=yes
+          REM Enable RDP
+          reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+          netsh advfirewall firewall set rule group="Remote Desktop" new enable=yes
 
-            REM Run Pinggy tunnel
-            "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
+          REM Run Pinggy tunnel
+          "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
 
-            REM Keep VM alive
-            @echo off
-            for /L %%i in (1,1,360) do (
-              timeout /t 60 >nul
-              echo Running %%i minutes
-            )
-      requirements:
-        - name: teamcity.agent.jvm.os.name
-          condition: equals
-          value: Windows
+          REM Keep VM alive
+          for /L %%i in (1,1,360) do (
+            timeout /t 60 >nul
+            echo Running %%i minutes
+          )
+    requirements:
+      - name: teamcity.agent.jvm.os.name
+        condition: equals
+        value: Windows
