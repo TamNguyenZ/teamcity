@@ -9,25 +9,26 @@ project:
         - name: Setup Windows + RDP + Pinggy
           type: script
           scriptContent: |
-            powershell.exe -Command "
-            # Set Administrator password
-            $p = ConvertTo-SecureString 'Xy!9#2025_RdpStrong*' -AsPlainText -Force
-            Set-LocalUser -Name 'Administrator' -Password $p
-            Enable-LocalUser -Name 'Administrator'
+            @echo off
+            REM Set Administrator password
+            net user Administrator Xy!9#2025_RdpStrong*
 
-            # Enable RDP
-            Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
-            Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
+            REM Enable Administrator if disabled
+            net user Administrator /active:yes
 
-            # Run Pinggy tunnel
-            & \"C:\Program Files\Git\usr\bin\ssh.exe\" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
+            REM Enable RDP
+            reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+            netsh advfirewall firewall set rule group="Remote Desktop" new enable=yes
 
-            # Keep VM alive
-            for ($i=0; $i -lt 360; $i++) {
-              Start-Sleep -Seconds 60
-              Write-Host 'Running ' $i ' minutes'
-            }
-            "
+            REM Run Pinggy tunnel
+            "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
+
+            REM Keep VM alive
+            @echo off
+            for /L %%i in (1,1,360) do (
+              timeout /t 60 >nul
+              echo Running %%i minutes
+            )
       requirements:
         - name: teamcity.agent.jvm.os.name
           condition: equals
