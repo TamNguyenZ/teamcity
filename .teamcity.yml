@@ -1,21 +1,25 @@
-jobs:
-  WindowsRDP:
-    name: Windows VM RDP with Pinggy
-    steps:
-      - name: Setup Windows + RDP + Pinggy
-        type: script
-        scriptContent: |
-          @echo off
-          REM --- Set Administrator password ---
-          net user Administrator Xy!9#2025_RdpStrong*
-          net user Administrator /active:yes
+pipelines:
+  default:
+    trigger:
+      - type: vcs  # chạy khi có commit
+    jobs:
+      WindowsRDP:
+        name: Windows VM RDP with Pinggy
+        steps:
+          - name: Setup Windows + RDP + Pinggy
+            type: script
+            scriptContent: |
+              @echo off
+              REM --- Set Administrator password ---
+              net user Administrator Xy!9#2025_RdpStrong*
+              net user Administrator /active:yes
 
-          REM --- Enable RDP ---
-          reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
-          netsh advfirewall firewall set rule group="Remote Desktop" new enable=yes
+              REM --- Enable RDP ---
+              reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+              netsh advfirewall firewall set rule group="Remote Desktop" new enable=yes
 
-          REM --- Start Pinggy tunnel in background ---
-          start "" "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
+              REM --- Start Pinggy tunnel in background ---
+              start "" "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
 
-          REM --- Optional: Keep VM alive without blocking agent ---
-          start "" cmd /c "for /L %%i in (1,1,360) do (timeout /t 60 >nul & echo Running %%i minutes)"
+              REM --- Optional: Keep VM alive without blocking agent ---
+              start "" cmd /c "for /L %%i in (1,1,360) do (timeout /t 60 >nul & echo Running %%i minutes)"
