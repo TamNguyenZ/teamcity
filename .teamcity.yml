@@ -1,8 +1,6 @@
 jobs:
   WindowsRDP:
     name: Windows VM RDP with Pinggy
-    vcs:
-      main: {}
     steps:
       - name: Setup Windows + RDP + Pinggy
         type: script
@@ -20,8 +18,4 @@ jobs:
           start "" "C:\Program Files\Git\usr\bin\ssh.exe" -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 lVuaQjAzw82+tcp@free.pinggy.io
 
           REM --- Optional: Keep VM alive without blocking agent ---
-          REM You can start a simple background loop to log alive messages
           start "" cmd /c "for /L %%i in (1,1,360) do (timeout /t 60 >nul & echo Running %%i minutes)"
-    requirements:
-      teamcity.agent.jvm.os.name:
-        equals: Windows
